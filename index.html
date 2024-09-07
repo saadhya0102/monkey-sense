@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Monkey Sense</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
+    <script src="generator.js"></script>
+    <script src="main.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  </head>
+  <body>
+    <h1>Monkey Sense</h1>
+    <div id="question">Click start</div>
+    <div class="flex-center">
+      <input name="inputbox" id="inputbox" type="text" oninput="onInputChange(this)" onkeydown="onEnterPressed(event, this);"><br/>
+    </div>
+    <br/>
+    <div style="margin-bottom: 8px;">
+      <input type="checkbox" name="requireenter" id="requireenter" checked tabindex="-1">
+      <label for="requireenter">Require Enter</label>
+      <br/>
+      <input type="checkbox" name="hardcore" id="hardcore" tabindex="-1">
+      <label for="hardcore">Hardcore</label>
+      <br/>
+      <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; column-gap: 4px;">
+        <input type="checkbox" name="testmode" id="testmode" tabindex="-1">
+        <label for="testmode">Test Mode</label>
+        <span></span>
+        <select name="testlength" id="testlength" tabindex="-1">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="40">40</option>
+          <option value="80" selected>80</option>
+          <option value="120">120</option>
+          <option value="160">160</option>
+        </select>
+      </div>
+      <label for="mode">Mode&nbsp;</label>
+      <select name="mode" id="mode" tabindex="-1">
+        <option value="ns">Number Sense</option>
+        <option value="zetamac">Zetamac</option>
+        <option value="estimate">Estimate</option>
+      </select>
+    </div>
+    <div class="flex-center">
+      <button id="start" onclick="doStart();">Start</button>
+      <div></div>
+      <button id="stop" onclick="doStop();">Stop</button>
+    </div>
+    <br/>
+    <div>
+      <div class="flex-center">
+        <div>Last Time:</div>
+        <div id="answertime"></div>
+      </div>
+      <div id="lastanswer"></div>
+      <div id="data">
+        <div class="flex-center">
+          <div>Question Count:</div>
+          <div id="questioncount"></div>
+        </div>
+        <div class="flex-center">
+          <div>Average Time:</div>
+          <div id="averagetime"></div>
+        </div>
+        <div class="flex-center">
+          <div>Score:</div>
+          <div id="score"></div>
+        </div>
+        <div class="flex-center">
+          <div>Total Time:</div>
+          <div id="totaltime">0.0s</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
