@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Print Monkey Sense</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      div, h1, button, input {
+        color: black;
+        text-align: left;
+        font-family: 'Times New Roman', Times, serif;
+        font-weight: bold;
+        font-size: 13.8px;
+        word-wrap: normal;
+      }
+
+      h1 {
+        font-size: xx-large;
+        margin-bottom: 1.5em;
+      }
+
+      * {
+        font-weight: bold;
+      }
+
+      .page-group {
+        column-count: 2;
+        column-width: 35%;
+        column-gap: 10%;
+        page-break-after: always;
+        margin: 0px 2%;
+      }
+
+      #answers {
+        column-count: 4;
+        column-gap: 3%;
+        margin: 0px 2%;
+      }
+      #answers > div {
+        margin-bottom: 1.5em;
+      }
+
+      .question {
+        margin-bottom: 1.2em;
+        padding-left: 2.2em;
+        line-height: 130%;
+        width: 100%;
+        text-indent: -2.2em;
+        /* display: flex;
+        justify-content: left;
+        column-gap: 8px; */
+      }
+
+      /* .answer-blank {
+        margin-left: 8px;
+        border-bottom: .1px solid black;
+        transform: scaleY(.5);
+        /* flex: 1 1 auto;
+        align-self: self-end;
+      } */
+
+      /* .answer-blank::before {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        width: 100%;
+        height: .1px;
+        background-color: black;
+      } */
+
+      .answer-blank {
+        font-weight: bold;
+        margin-left: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      /* .answer-blank::after {
+        background-color: gray;
+        content: "_____________________________";
+        font-weight: bold;
+        z-index: -1;
+      } */
+
+      /* .question::after {
+        content: "________________";
+        font-weight: bold;
+        margin-left: .5em;
+      } */
+
+      @page {
+        size: letter;
+        margin: .5in;
+      }
+    </style>
+    <script>
+      // Base64 conversion, modified from https://gist.github.com/alkaruno/b84162bae5115f4ca99b
+      {
+        const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+        Base64 = {
+          encode: function (value) {
+            if (typeof(value) !== 'number') {
+              throw 'Value is not number!';
+            }
+            var result = '', mod;
+            for (let i = 0; i < digits; i++) {
+              mod = value % 64;
+              result = ALPHA.charAt(mod) + result;
+              value = Math.floor(value / 64);
+            }
+            return result;
+          },
+          decode: function (value) {
+            var result = 0;
+            for (var i = 0, len = value.length; i < len; i++) {
+              result *= 64;
+              result += ALPHA.indexOf(value[i]);
+            }
+            return result;
+          }
+        };
+      }
+    </script>
+    <script>
+      const queryParams = new URLSearchParams(window.location.search);
+      const questions = [];
+      let useAsciiMath = true;
+      digits = 8;
+      function getFormattedAnswer(q) {
+        if (typeof(q.ans) == "object")
+          return q.ans.join(", &nbsp;");
+        if (typeof(q.ans) == "number") {
+          if (q.guess)
+            return `${Math.round(q.ans * 0.95)} — ${Math.round(q.ans * 1.05)}`;
+          const str = q.ans.toString();
+          if (str.includes(".") && str.substring(str.indexOf(".").length) > 3)
+            return q.ans.toFixed(3) + "...";
+        }
+        return q.ans;
+      }
+      {
+        const querySeed = queryParams.get("seed");
+        seed = querySeed ? Base64.decode(queryParams.get("seed")) : Math.floor(Math.random() * 2 ** (digits * 6));
+      }
+
+      MathJax = {
+        loader: {load: ['input/asciimath', 'output/chtml', 'ui/menu']},
+        startup: {
+          ready: () => {
+            mode = queryParams.get("mode") || "ns";
+            document.getElementById("title").innerText = `Monkey Sense ${mode === "ns" ? "Number Sense" : mode === "zetamac" ? "Zetamac" : "Estimate"} — ${Base64.encode(seed)}`;
+            let offset = 0;
+            for (let element of document.getElementsByClassName("page-group")) {
+              element.innerHTML = new Array(40).fill(0).map((_, i) => {
+                const shouldBeEstimate = mode === "estimate" || mode === "ns" && (i + 1) % 10 == 0;
+                do {
+                  generateQuestion(Math.floor((i + offset) / 20));
+                }
+                while ((modeData.question.guess === true) != shouldBeEstimate);
+                questions.push(modeData.question);
+                const isGuess = modeData.question.guess;
+                if (isGuess)
+                  modeData.question.str = modeData.question.str.replace("*", "");
+                return `<div class="question">${isGuess ? "*" : ""}(${i + 1 + offset}) &nbsp;${modeData.question.str}<span class="answer-blank">${"_".repeat(12)}</span></div>`;
+                // return `<div class="question"><div>${modeData.question.str}</div><div class="answer-blank"></div></div>`;
+              }).join("");
+              offset += 40;
+            }
+            document.getElementById("answers").innerHTML = questions.map((q, i) => `<div>(${i + 1}) &nbsp;${getFormattedAnswer(q)}</div>`).join("");
+            MathJax.startup.defaultReady();
+            MathJax.startup.promise.then(() => {
+              MathJax.typeset();
+              setTimeout(() => {
+                print();
+              }, 600);
+            });
+          }
+        }
+      };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/seedrandom.min.js"></script>
+    <script src="generator.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  </head>
+  <body style="background-color: white;">
+    <h1 id="title"></h1>
+    <div class="page-group"></div>
+    <div class="page-group"></div>
+    <h1 style="text-align: center;">Answer Key</h1>
+    <br/>
+    <div id="answers"></div>
+  </body>
+</html>
